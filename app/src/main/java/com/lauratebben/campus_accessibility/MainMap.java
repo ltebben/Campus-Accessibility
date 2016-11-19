@@ -1,5 +1,9 @@
 package com.lauratebben.campus_accessibility;
 
+import android.content.Context;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -24,7 +28,13 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         mapFragment.getMapAsync(this);
     }
 
-
+    private LatLng getMyLocation() {
+        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        
+        Location location = manager.getLastKnownLocation(manager.getBestProvider(criteria, false));
+        return new LatLng(location.getLatitude(), location.getLongitude());
+    }
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -39,8 +49,8 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng myLocation = getMyLocation();
+        mMap.addMarker(new MarkerOptions().position(myLocation).title("Your current location"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
     }
 }

@@ -1,11 +1,14 @@
 package com.lauratebben.campus_accessibility;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,7 +34,10 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     private LatLng getMyLocation() {
         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
-        
+        if ( ContextCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
+
+            return new LatLng(39.132456, -84.515691);
+        }
         Location location = manager.getLastKnownLocation(manager.getBestProvider(criteria, false));
         return new LatLng(location.getLatitude(), location.getLongitude());
     }

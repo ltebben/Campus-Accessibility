@@ -31,6 +31,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 public class MainMap extends FragmentActivity implements OnMapReadyCallback {
 
@@ -46,6 +47,29 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
 
     String startLocation = null;
     String endLocation = null;
+    AlertDialog.Builder departure = null;
+    AlertDialog.Builder destination = null;
+    EditText departText = null;
+    EditText destText = null;
+    String directionsResult = null;
+
+    private void getDirections() {
+        // Make http request from google here
+        String request = "https://maps.googleapis.com/maps/api/directions/json?";
+        String start = startLocation;
+        start.replaceAll(Pattern.quote("\\s"), "+");
+        String end = endLocation;
+        end.replaceAll(Pattern.quote("\\s"), "+");
+        request += "origin=";
+        request += start;
+        request += "&destination=";
+        request += end;
+        request += "&mode=walking&key=";
+        // This is a different key. If it doesn't work try using the old one.
+        request += "AIzaSyARJ_7oWPxlS8c2dJ84tm3dk7dutpUFtzQ";
+        // At this point, the request is good to go
+        // Somehow you make this request and it gives you a json document to sort through
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +81,51 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         mapFragment.getMapAsync(this);
 
         button = (Button) findViewById(R.id.setRangeButton);
+        departure = new AlertDialog.Builder(this);
+        destination = new AlertDialog.Builder(this);
+        departText = new EditText(this);
+        destText = new EditText(this);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                
+                departure.setTitle("Departure");
+                departure.setView(departText);
+                destination.setTitle("Destination");
+                destination.setView(destText);
+
+                departure.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                   @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                       startLocation = departText.getText().toString();
+                   }
+                });
+
+                departure.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                destination.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        endLocation = destText.getText().toString();
+                        if (startLocation != null && !startLocation.isEmpty() && endLocation != null && !endLocation.isEmpty()) {
+                            getDirections();
+                        }
+                    }
+                });
+
+                destination.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                destination.show();
+                departure.show();
             }
         });
     }

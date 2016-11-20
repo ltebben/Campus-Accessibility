@@ -35,9 +35,10 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
     private ArrayList<LatLng> markers = new ArrayList<LatLng>();
     private double lat, lon;
-    boolean endClick2 = false;
     String description, title;
     String httpResponse = null;
+    Marker m = null;
+    boolean toEnd = false;
 
     Thread ithread = null;
 
@@ -62,7 +63,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         return new LatLng(location.getLatitude(), location.getLongitude());*/
     }
 
-    private void getInput(final Marker m) {
+    private void getInput() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("How do you get around this?");
@@ -73,9 +74,14 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                if (toEnd) { dialog.cancel(); toEnd = false; return; }
                 description = desc.getText().toString();
                 m.setSnippet(description);
-                if (endClick2){
+                if (description.isEmpty() || title.isEmpty() || description == null || title == null) {
+                    markers.remove(markers.size() - 1);
+                    m.remove();
+                }
+                else {
                     makeHTTPRequest();
                 }
             }
@@ -85,6 +91,8 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
+                markers.remove(markers.size() - 1);
+                m.remove();
             }
         });
 
@@ -101,7 +109,6 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
             public void onClick(DialogInterface dialog, int which) {
                 title = input.getText().toString();
                 m.setTitle(title);
-                endClick2 = true;
             }
         });
 
@@ -109,6 +116,9 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
+                toEnd = true;
+                markers.remove(markers.size() - 1);
+                m.remove();
             }
         });
 
@@ -203,11 +213,10 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onMapClick(LatLng point) {
                 markers.add(point);
-                final Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("Title"));
+                m = mMap.addMarker(new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title(""));
                 lat = point.latitude;
                 lon = point.longitude;
-                m.setSnippet("Please describe the problem.");
-                getInput(m);
+                getInput();
             }
         });
 

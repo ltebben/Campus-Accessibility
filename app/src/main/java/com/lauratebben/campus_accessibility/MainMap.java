@@ -33,7 +33,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-public class MainMap extends FragmentActivity implements OnMapReadyCallback {
+public class MainMap extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     private ArrayList<LatLng> markers = new ArrayList<LatLng>();
@@ -139,6 +139,12 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         Location location = manager.getLastKnownLocation(manager.getBestProvider(criteria, false));
         lat = location.getLatitude(); lon = location.getLongitude();
         return new LatLng(location.getLatitude(), location.getLongitude());*/
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        
+        return true;
     }
 
     private void getInput() {
@@ -285,7 +291,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         LatLng myLocation = getMyLocation();
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
-
+        mMap.setOnMarkerClickListener(this);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {

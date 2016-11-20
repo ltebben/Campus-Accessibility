@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -23,9 +24,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -38,7 +48,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     private double lat, lon;
     boolean endClick1 = false, endClick2 = false;
     String description, title;
-
+    String httpResponse = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -140,14 +150,14 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run(){
-                try{
-                    try (final OutputStream output = connection.getOutputStream()){
-                        output.write(query.getBytes(charset));
-                    }
+                    try{
+                        try (final OutputStream output = connection.getOutputStream()){
+                            output.write(query.getBytes(charset));
+                        }
 
-                    InputStream response = connection.getInputStream();
-                    System.out.println(response);
-                } catch (Exception e){e.printStackTrace();}
+                        InputStream response = connection.getInputStream();
+                        System.out.println(response);
+                    } catch (Exception e){e.printStackTrace();}
                 }
             });
             thread.start();
@@ -156,35 +166,100 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         }
 
     }
-    
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera. In this case,
-         * we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to install
-         * it inside the SupportMapFragment. This method will only be triggered once the user has
-         * installed Google Play services and returned to the app.
-         */
-        @Override
-        public void onMapReady (GoogleMap googleMap){
-            mMap = googleMap;
-            // Add a marker in Sydney and move the camera
-            LatLng myLocation = getMyLocation();
-            mMap.addMarker(new MarkerOptions().position(myLocation).title("Your current location"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
 
-            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-                @Override
-                public void onMapClick(LatLng point) {
-                    markers.add(point);
-                    final Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("Title"));
-                    lat = point.latitude;
-                    lon = point.longitude;
-                    m.setSnippet("Please describe the problem.");
-                    getInput(m);
+    private String convertStreamToString(InputStream is) {
+        BufferedReader reader;
+        reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public void MakeHttpGetRequest() {
+        try {
+            Thread thread = new Thread((Runnable) () -> {
+                URL url;
+                try {
+                    url = new URL("http://54.152.111.115:21300/comment/render");
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    // read the response
+                    InputStream in = new BufferedInputStream(conn.getInputStream());
+                    httpResponse = convertStreamToString(in);
             });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady (GoogleMap googleMap){
+        mMap = googleMap;
+        // Add a marker in Sydney and move the camera
+        LatLng myLocation = getMyLocation();
+        mMap.addMarker(new MarkerOptions().position(myLocation).title("Your current location"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+                markers.add(point);
+                final Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("Title"));
+                lat = point.latitude;
+                lon = point.longitude;
+                m.setSnippet("Please describe the problem.");
+                getInput(m);
+            }
+        });
+
+        MakeHttpGetRequest();
+        JSONArray arr = null;
+        try {
+            arr = new JSONArray(httpResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                String id = obj.getString("_id");
+                String desc = obj.getString("description");
+                String title = obj.getString("title");
+                double lat = obj.getDouble("latitude");
+                double longitude = obj.getDouble("longitude");
+                mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longitude)).title(title).snippet(desc));
+            }
+        } catch (Exception e) {
+            System.out.println("Fuck off, java");
+        }
+    }
+}

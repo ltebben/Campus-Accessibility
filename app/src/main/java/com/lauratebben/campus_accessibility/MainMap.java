@@ -2,19 +2,13 @@ package com.lauratebben.campus_accessibility;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.location.Criteria;
-import android.location.Location;
 import android.location.LocationManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
-import android.util.Log;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -27,15 +21,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -46,7 +35,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
     private ArrayList<LatLng> markers = new ArrayList<LatLng>();
     private double lat, lon;
-    boolean endClick1 = false, endClick2 = false;
+    boolean endClick2 = false;
     String description, title;
     String httpResponse = null;
 
@@ -86,11 +75,8 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
             public void onClick(DialogInterface dialog, int which) {
                 description = desc.getText().toString();
                 m.setSnippet(description);
-                endClick1 = true;
-                if (endClick1 && endClick2) {
+                if (endClick2){
                     makeHTTPRequest();
-                    endClick1 = false;
-                    endClick2 = false;
                 }
             }
         });
@@ -116,11 +102,6 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
                 title = input.getText().toString();
                 m.setTitle(title);
                 endClick2 = true;
-                if (endClick1 && endClick2) {
-                    makeHTTPRequest();
-                    endClick1 = false;
-                    endClick2 = false;
-                }
             }
         });
 
@@ -146,7 +127,6 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
                     URLEncoder.encode(description, charset),
                     URLEncoder.encode(longitude, charset),
                     URLEncoder.encode(latitude, charset));
-            System.out.println(query);
             final URLConnection connection = new URL(url).openConnection();
             connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
@@ -159,7 +139,6 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
                         }
 
                         InputStream response = connection.getInputStream();
-                        System.out.println(response);
                     } catch (Exception e){e.printStackTrace();}
                 }
             });
@@ -236,7 +215,6 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         JSONArray arr = null;
         try {
             ithread.join();
-            System.out.println(httpResponse);
             arr = new JSONArray(httpResponse);
         } catch (Exception e) {
             e.printStackTrace();
@@ -252,7 +230,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
                 mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longitude)).title(title).snippet(desc));
             }
         } catch (Exception e) {
-            System.out.println("Fuck off, java");
+            System.out.println("Error");
         }
     }
 }

@@ -168,6 +168,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                if (toEnd) { toEnd = false; return; }
                 dialog.cancel();
                 markers.remove(markers.size() - 1);
                 m.remove();

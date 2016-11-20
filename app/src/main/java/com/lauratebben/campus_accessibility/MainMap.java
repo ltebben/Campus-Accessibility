@@ -191,23 +191,33 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     }
 
     public void MakeHttpGetRequest() {
-        try {
-            Thread thread = new Thread((Runnable) () -> {
-                URL url;
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run(){
                 try {
-                    url = new URL("http://54.152.111.115:21300/comment/render");
+                    URLConnection connection = (new URL("http://54.152.111.115:21300/comment/")).openConnection();
+                    connection.setConnectTimeout(5000);
+                    connection.setReadTimeout(5000);
+                    connection.connect();
+
+                    // Read and store the result line by line then return the entire string.
+                    InputStream in = connection.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder html = new StringBuilder();
+                    for (String line; (line = reader.readLine()) != null; ) {
+                        html.append(line);
+                    }
+                    in.close();
+
+                    httpResponse = html.toString();
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("GET");
-                    // read the response
-                    InputStream in = new BufferedInputStream(conn.getInputStream());
-                    httpResponse = convertStreamToString(in);
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+        });
+        thread.start();
     }
 
 
@@ -225,7 +235,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         mMap = googleMap;
         // Add a marker in Sydney and move the camera
         LatLng myLocation = getMyLocation();
-        mMap.addMarker(new MarkerOptions().position(myLocation).title("Your current location"));
+        //mMap.addMarker(new MarkerOptions().position(myLocation).title("Your current location"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
 
@@ -244,6 +254,8 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         MakeHttpGetRequest();
         JSONArray arr = null;
         try {
+            System.out.println("HELLO NOTICE ME SENPAI");
+            System.out.println(httpResponse);
             arr = new JSONArray(httpResponse);
         } catch (Exception e) {
             e.printStackTrace();

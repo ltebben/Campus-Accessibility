@@ -143,7 +143,19 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback, Goo
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        
+
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+        builder1.setTitle(marker.getTitle());
+        builder1.setMessage(marker.getSnippet());
+        builder1.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // continue with delete
+            }
+        });
+        builder1.setIcon(android.R.drawable.ic_dialog_alert);
+        builder1.show();
+
+
         return true;
     }
 

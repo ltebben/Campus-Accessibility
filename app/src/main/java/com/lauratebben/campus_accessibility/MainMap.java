@@ -52,9 +52,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     private LatLng getMyLocation() {
         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
-        // if ( ContextCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
-        lat = 39.132456;
-        lon = -84.515691;
+        // if ( ContextCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED )
         return new LatLng(39.132456, -84.515691);
        /* }
         Location location = manager.getLastKnownLocation(manager.getBestProvider(criteria, false));
@@ -182,6 +180,8 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
                 public void onMapClick(LatLng point) {
                     markers.add(point);
                     final Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("Title"));
+                    lat = point.latitude;
+                    lon = point.longitude;
                     m.setSnippet("Please describe the problem.");
                     getInput(m);
                 }

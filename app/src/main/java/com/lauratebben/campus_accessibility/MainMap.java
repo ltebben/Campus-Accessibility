@@ -1,6 +1,7 @@
 package com.lauratebben.campus_accessibility;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -9,6 +10,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -46,6 +50,57 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         Location location = manager.getLastKnownLocation(manager.getBestProvider(criteria, false));
         return new LatLng(location.getLatitude(), location.getLongitude());
     }
+
+    private void getInput(final Marker m) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("How do you get around this?");
+        final EditText desc = new EditText(this);
+        desc.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(desc);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String description;
+                description = desc.getText().toString();
+                m.setSnippet(description);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Describe the Location");
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String description;
+                description = input.getText().toString();
+                m.setTitle(description);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -58,7 +113,6 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         // Add a marker in Sydney and move the camera
         LatLng myLocation = getMyLocation();
         mMap.addMarker(new MarkerOptions().position(myLocation).title("Your current location"));
@@ -69,8 +123,9 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onMapClick(LatLng point) {
                 markers.add(point);
-                Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("New Marker"));
-                m.setSnippet("Testing 123");
+                final Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("Title"));
+                m.setSnippet("Please describe the problem.");
+                getInput(m);
             }
         });
     }

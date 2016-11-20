@@ -49,6 +49,9 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     boolean endClick1 = false, endClick2 = false;
     String description, title;
     String httpResponse = null;
+
+    Thread ithread = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -167,36 +170,14 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
 
     }
 
-    private String convertStreamToString(InputStream is) {
-        BufferedReader reader;
-        reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append('\n');
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return sb.toString();
-    }
-
     public void MakeHttpGetRequest() {
 
-        Thread thread = new Thread(new Runnable() {
+        ithread = new Thread(new Runnable() {
             @Override
             public void run(){
                 try {
                     URLConnection connection = (new URL("http://54.152.111.115:21300/comment/")).openConnection();
+                    connection.setRequestProperty("User-Agent", "Mozilla");
                     connection.setConnectTimeout(5000);
                     connection.setReadTimeout(5000);
                     connection.connect();
@@ -217,7 +198,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
                 }
             }
         });
-        thread.start();
+        ithread.start();
     }
 
 
@@ -254,7 +235,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         MakeHttpGetRequest();
         JSONArray arr = null;
         try {
-            System.out.println("HELLO NOTICE ME SENPAI");
+            ithread.join();
             System.out.println(httpResponse);
             arr = new JSONArray(httpResponse);
         } catch (Exception e) {

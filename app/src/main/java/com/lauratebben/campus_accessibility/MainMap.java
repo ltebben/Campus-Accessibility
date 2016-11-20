@@ -8,6 +8,8 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -39,8 +41,11 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     String httpResponse = null;
     Marker m = null;
     boolean toEnd = false;
-
+    Button button = null;
     Thread ithread = null;
+
+    String startLocation = null;
+    String endLocation = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +55,14 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        button = (Button) findViewById(R.id.setRangeButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                
+            }
+        });
     }
 
     private LatLng getMyLocation() {
@@ -203,9 +216,7 @@ public class MainMap extends FragmentActivity implements OnMapReadyCallback {
     @Override
     public void onMapReady (GoogleMap googleMap){
         mMap = googleMap;
-        // Add a marker in Sydney and move the camera
         LatLng myLocation = getMyLocation();
-        //mMap.addMarker(new MarkerOptions().position(myLocation).title("Your current location"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
 
